@@ -5,11 +5,23 @@
         "node": true
     },
     "extends": [
+        "airbnb-base",
+        "airbnb-typescript/base",
         "eslint:recommended",
         "plugin:react/recommended",
-        "plugin:@typescript-eslint/recommended",
-        "airbnb-base",
-        "airbnb-typescript/base"
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "overrides": [
+        {
+          "files": ["*.ts", "*.tsx"],
+          "extends": [
+            "plugin:@typescript-eslint/eslint-recommended",
+            "plugin:@typescript-eslint/recommended",
+            "prettier/@typescript-eslint"
+          ],
+          "parser": "@typescript-eslint/parser",
+          "plugins": ["@typescript-eslint"]
+        }
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
@@ -21,6 +33,7 @@
         "sourceType": "module"
     },
     "plugins": [
+        "import",
         "react",
         "@typescript-eslint"
     ],
@@ -29,11 +42,18 @@
             "error",
             "ignorePackages",
             {
-              "js": "never",
-              "jsx": "never",
-              "ts": "never",
-              "tsx": "never"
+                "js": "never",
+                "jsx": "never",
+                "ts": "never",
+                "tsx": "never"
             }
         ]
+    },
+    "settings": {
+        "import/resolver": {
+            "node": {
+                "extensions": [".js", ".jsx", ".ts", ".tsx"]
+            }
+        }
     }
 }
