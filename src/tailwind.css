@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply h-screen bg-black;
+  }
+}
+@layer components {
+  .button {
+    @apply px-3 py-2 bg-zinc-600 text-white rounded;
+  }
+  .button:disabled {
+    @apply bg-zinc-600;
+  }
+}
