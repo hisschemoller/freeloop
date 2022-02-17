@@ -3,13 +3,15 @@
 @tailwind utilities;
 
 @layer base {
-  html {
-    @apply h-screen bg-black;
-  }
+  html,
   body {
     min-height: 100vh;
     /* mobile viewport bug fix */
     min-height: -webkit-fill-available;
+    height: 100%;
+    overflow: auto;
+    position: fixed;
+    width: 100%;
   }
 }
 @layer components {

@@ -38,6 +38,7 @@
     "@types/react": "^16.14.23",
     "@types/react-dom": "^16.9.14",
     "axios": "^0.26.0",
+    "inobounce": "^0.2.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "5.0.0",
