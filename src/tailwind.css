@@ -6,6 +6,11 @@
   html {
     @apply h-screen bg-black;
   }
+  body {
+    min-height: 100vh;
+    /* mobile viewport bug fix */
+    min-height: -webkit-fill-available;
+  }
 }
 @layer components {
   .button {
