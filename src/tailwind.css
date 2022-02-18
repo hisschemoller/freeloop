@@ -11,6 +11,10 @@
     height: 100%;
     overflow: auto;
     position: fixed;
+    /* https://stackoverflow.com/a/69177734 */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
     width: 100%;
   }
 }

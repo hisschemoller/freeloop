@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useDrag } from '@use-gesture/react';
 import addWindowResizeCallback from '../util/windowresize';
 
 interface Point {
@@ -7,8 +8,6 @@ interface Point {
 }
 
 const POINT_RADIUS = 16;
-
-const hasTouchEvents = () => 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
 const drawPoints = (ctx: CanvasRenderingContext2D, points: Point[], selectedIndex: number) => {
   ctx.fillStyle = '#666666';
@@ -20,7 +19,7 @@ const drawPoints = (ctx: CanvasRenderingContext2D, points: Point[], selectedInde
       ctx.beginPath();
       ctx.strokeStyle = '#cccccc';
       ctx.lineWidth = 3;
-      ctx.arc(point.x, point.y, 22, 0, Math.PI * 2);
+      ctx.arc(point.x, point.y, POINT_RADIUS + 6, 0, Math.PI * 2);
       ctx.stroke();
     }
   });
@@ -31,30 +30,40 @@ export default () => {
   const [points, setPoints] = useState<Point[]>([]);
   const [rect, setRect] = useState<DOMRect>();
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
-  const [isOnPoint, setIsOnPoint] = useState<boolean>(false);
 
-  const onCanvasDown = useCallback((x: number, y: number) => {
-    if (rect) {
-      const mousePoint = { x: x - rect.left, y: y - rect.top };
-      const indexUnderMouse = points.findIndex((point) => (
-        Math.sqrt((point.x - mousePoint.x) ** 2 + (point.y - mousePoint.y) ** 2) <= POINT_RADIUS));
-      if (indexUnderMouse >= 0) {
-        setSelectedIndex(indexUnderMouse);
-      } else {
-        setPoints([ mousePoint, ...points]);
-        setSelectedIndex(0);
+  const dragHook = useDrag((state) => {
+    const { args: [ rect ], distance, elapsedTime, type, xy } = state;
+    // console.log(state.type);
+
+    if (type === 'pointerdown') {
+      const pointIndex = points.findIndex((point) => (
+        Math.sqrt((point.x - xy[0] + rect.left) ** 2 + (point.y - xy[1] + rect.top) ** 2) <= POINT_RADIUS));
+      setSelectedIndex(pointIndex);
+    }
+
+    if (type === 'pointermove') {
+      if (selectedIndex > -1) {
+        setPoints(points.map((point, index) => (
+          index === selectedIndex ? { x: xy[0] - rect.left, y: xy[1] - rect.top } : point
+        )));
       }
     }
-  }, [points, rect]);
 
-  const onCanvasMove = useCallback((x: number, y: number) => {
-    if (rect) {
-      setPoints(points.map((point, index) => (
-        index === selectedIndex ? { x: x - rect.left, y: y - rect.top } : point
-      )));
+    if (type === 'pointerup') {
+      const dist = Math.sqrt(distance[0] ** 2 + distance[1] ** 2);
+      if (selectedIndex === -1 && elapsedTime > 300 && dist < 2) {
+        setPoints([{ x: xy[0] - rect.left, y: xy[1] - rect.top }, ...points]);
+        setSelectedIndex(0);
+      }
+
+      if (selectedIndex > -1 && elapsedTime > 300 && dist < 2) {
+        // popper
+      }
     }
-  }, [points, rect, selectedIndex]);
-  
+  }, {
+    preventDefault: true, 
+  });
+
   useEffect(() => {
     if (canvasRef.current) {
       const ctx = canvasRef.current.getContext('2d');
@@ -82,21 +91,6 @@ export default () => {
 
   return <canvas
     ref = {canvasRef}
-    onMouseDown = {(e) => {
-      if (!hasTouchEvents()) {
-        onCanvasDown(e.clientX, e.clientY);
-      }
-    }}
-    onMouseMove = {(e) => {
-      if (!hasTouchEvents()) {
-        onCanvasMove(e.clientX, e.clientY);
-      }
-    }}
-    onTouchStart = {(e) => {
-      onCanvasDown(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-    }}
-    onTouchMove = {(e) => {
-      onCanvasMove(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-    }}
+    { ...dragHook(rect, 'arg') }
     />;
 }
