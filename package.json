@@ -30,6 +30,7 @@
     ]
   },
   "dependencies": {
+    "@popperjs/core": "^2.11.2",
     "@testing-library/jest-dom": "^5.16.2",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^12.8.3",
@@ -42,6 +43,7 @@
     "inobounce": "^0.2.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-popper": "^2.2.5",
     "react-scripts": "5.0.0",
     "typescript": "^4.5.5",
     "web-vitals": "^0.2.4",

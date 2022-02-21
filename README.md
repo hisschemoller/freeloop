@@ -1,5 +1,14 @@
 # Freeloop
 
+Some sort of audio sequencer.
+
+## Manual
+
+* Tap short on a point to select it.
+* Tap slightly longer on a point to open its toolbox.
+* Tap slightly longer on an empty area to create a point.
+* Drag a point to move it.
+
 ## Setup
 
 1. Create a New React App

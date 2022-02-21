@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDrag } from '@use-gesture/react';
+import { usePopper } from 'react-popper';
+import { VirtualElement } from '@popperjs/core';
 import addWindowResizeCallback from '../util/windowresize';
 
 interface Point {
@@ -7,7 +9,7 @@ interface Point {
   y: number;
 }
 
-const POINT_RADIUS = 16;
+const POINT_RADIUS = 20;
 
 const drawPoints = (ctx: CanvasRenderingContext2D, points: Point[], selectedIndex: number) => {
   ctx.fillStyle = '#666666';
@@ -25,11 +27,23 @@ const drawPoints = (ctx: CanvasRenderingContext2D, points: Point[], selectedInde
   });
 };
 
+let domRect = new DOMRect();
+
+const virtualElement = {
+  getBoundingClientRect: () => domRect,
+};
+
 export default () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [points, setPoints] = useState<Point[]>([]);
   const [rect, setRect] = useState<DOMRect>();
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
+  const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
+  const [popperArrowElement, setPopperArrowElement] = useState<HTMLDivElement | null>(null);
+
+  const { attributes, styles, update } = usePopper(virtualElement, popperElement, {
+    modifiers: [{ name: 'arrow', options: { element: popperArrowElement } }],
+  });
 
   const dragHook = useDrag((state) => {
     const { args: [ rect ], distance, elapsedTime, type, xy } = state;
@@ -51,19 +65,30 @@ export default () => {
 
     if (type === 'pointerup') {
       const dist = Math.sqrt(distance[0] ** 2 + distance[1] ** 2);
-      if (selectedIndex === -1 && elapsedTime > 300 && dist < 2) {
+      if (selectedIndex === -1 && elapsedTime > 250 && dist < 2) {
         setPoints([{ x: xy[0] - rect.left, y: xy[1] - rect.top }, ...points]);
         setSelectedIndex(0);
-      }
+      }   
 
-      if (selectedIndex > -1 && elapsedTime > 300 && dist < 2) {
+      if (selectedIndex > -1 && elapsedTime > 250 && dist < 2) {
         // popper
+        // setPopperReference({ new DOMRect(xy[0], xy[1]) });
       }
     }
   }, {
     preventDefault: true, 
   });
 
+  // popper position
+  useEffect(() => {
+    if (selectedIndex > -1) {
+      const { x, y } = points[selectedIndex];
+      domRect = new DOMRect(x, y, POINT_RADIUS * 2, POINT_RADIUS * 2);
+      update && update();
+    }
+  }, [selectedIndex]);
+
+  // canvas redraw
   useEffect(() => {
     if (canvasRef.current) {
       const ctx = canvasRef.current.getContext('2d');
@@ -75,6 +100,7 @@ export default () => {
     }
   }, [points, rect, selectedIndex]);
 
+  // window resize
   useEffect(() => {
     const onWindowResize = () => {
       const parentEl = canvasRef.current?.parentElement;
@@ -89,8 +115,18 @@ export default () => {
     onWindowResize();
   }, []);
 
-  return <canvas
+  return <>
+    <canvas
     ref = {canvasRef}
     { ...dragHook(rect, 'arg') }
-    />;
+    />
+    <div
+      ref={setPopperElement}
+      className="px-4 py-2 bg-zinc-600 rounded"
+      style={styles.popper}
+      {...attributes.popper}>
+      Popper element
+      <div ref={setPopperArrowElement} style={styles.arrow} />
+    </div>
+  </>;
 }
