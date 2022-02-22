@@ -35,8 +35,8 @@ const virtualElement = {
 
 export default () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [points, setPoints] = useState<Point[]>([]);
   const [rect, setRect] = useState<DOMRect>();
+  const [points, setPoints] = useState<Point[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
   const [popperArrowElement, setPopperArrowElement] = useState<HTMLDivElement | null>(null);
@@ -54,6 +54,9 @@ export default () => {
     if (type === 'pointerdown') {
       const pointIndex = points.findIndex((point) => (
         Math.sqrt((point.x - xy[0] + rect.left) ** 2 + (point.y - xy[1] + rect.top) ** 2) <= POINT_RADIUS));
+      if (pointIndex !== selectedIndex) {
+        setPopperShow(false);
+      }
       setSelectedIndex(pointIndex);
     }
 
@@ -85,17 +88,6 @@ export default () => {
   }, {
     preventDefault: true, 
   });
-
-  // popper position
-  // useEffect(() => {
-  //   if (selectedIndex > -1 && rect) {
-  //     const radius = POINT_RADIUS + 20;
-  //     const distance = radius * 2;
-  //     const { x, y } = points[selectedIndex];
-  //     domRect = new DOMRect(x + rect.x - radius, y + rect.y - radius, distance, distance);
-  //     update && update();
-  //   }
-  // }, [selectedIndex]);
 
   // canvas redraw
   useEffect(() => {
@@ -133,8 +125,15 @@ export default () => {
       ref={setPopperElement}
       className={`popper ${popperShow ? 'show' : ''}`}
       style={styles.popper}
-      {...attributes.popper}>
-      Popper element
+      { ...attributes.popper }>
+      <button
+        onClick={() => {
+          setPopperShow(false);
+          setPoints(points.reduce((accumulator, point, index) => (
+            selectedIndex === index ? accumulator : [ ...accumulator, point ]
+          ), [] as Point[]));
+        }}
+        >x</button>
       <div
         ref={setPopperArrowElement}
         className="popper-arrow"
