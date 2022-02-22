@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './tailwind.css';
+import './css/style.css';
+import './css/tailwind.css';
 import 'inobounce/inobounce.js';
 import App from './components/App';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';

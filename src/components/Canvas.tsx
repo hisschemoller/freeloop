@@ -40,9 +40,11 @@ export default () => {
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
   const [popperArrowElement, setPopperArrowElement] = useState<HTMLDivElement | null>(null);
+  const [popperShow, setPopperShow] = useState<boolean>(false);
 
   const { attributes, styles, update } = usePopper(virtualElement, popperElement, {
     modifiers: [{ name: 'arrow', options: { element: popperArrowElement } }],
+    placement: 'top',
   });
 
   const dragHook = useDrag((state) => {
@@ -57,6 +59,7 @@ export default () => {
 
     if (type === 'pointermove') {
       if (selectedIndex > -1) {
+        setPopperShow(false);
         setPoints(points.map((point, index) => (
           index === selectedIndex ? { x: xy[0] - rect.left, y: xy[1] - rect.top } : point
         )));
@@ -70,9 +73,13 @@ export default () => {
         setSelectedIndex(0);
       }   
 
-      if (selectedIndex > -1 && elapsedTime > 250 && dist < 2) {
-        // popper
-        // setPopperReference({ new DOMRect(xy[0], xy[1]) });
+      if (selectedIndex > -1 && elapsedTime > 250 && dist < 2 && rect) {
+        const radius = POINT_RADIUS + 20;
+        const distance = radius * 2;
+        const { x, y } = points[selectedIndex];
+        domRect = new DOMRect(x + rect.x - radius, y + rect.y - radius, distance, distance);
+        update && update();
+        setPopperShow(true);
       }
     }
   }, {
@@ -80,13 +87,15 @@ export default () => {
   });
 
   // popper position
-  useEffect(() => {
-    if (selectedIndex > -1) {
-      const { x, y } = points[selectedIndex];
-      domRect = new DOMRect(x, y, POINT_RADIUS * 2, POINT_RADIUS * 2);
-      update && update();
-    }
-  }, [selectedIndex]);
+  // useEffect(() => {
+  //   if (selectedIndex > -1 && rect) {
+  //     const radius = POINT_RADIUS + 20;
+  //     const distance = radius * 2;
+  //     const { x, y } = points[selectedIndex];
+  //     domRect = new DOMRect(x + rect.x - radius, y + rect.y - radius, distance, distance);
+  //     update && update();
+  //   }
+  // }, [selectedIndex]);
 
   // canvas redraw
   useEffect(() => {
@@ -103,7 +112,7 @@ export default () => {
   // window resize
   useEffect(() => {
     const onWindowResize = () => {
-      const parentEl = canvasRef.current?.parentElement;
+      const parentEl = canvasRef.current?.parentElement;  
       if (parentEl) {
         const parentRect = parentEl.getBoundingClientRect();
         canvasRef.current.width = parentRect.width;
@@ -122,11 +131,14 @@ export default () => {
     />
     <div
       ref={setPopperElement}
-      className="px-4 py-2 bg-zinc-600 rounded"
+      className={`popper ${popperShow ? 'show' : ''}`}
       style={styles.popper}
       {...attributes.popper}>
       Popper element
-      <div ref={setPopperArrowElement} style={styles.arrow} />
+      <div
+        ref={setPopperArrowElement}
+        className="popper-arrow"
+        style={styles.arrow} />
     </div>
   </>;
 }
