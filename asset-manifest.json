@@ -1,16 +1,16 @@
 {
   "files": {
-    "main.css": "/freeloop/static/css/main.cbd5ecee.css",
-    "main.js": "/freeloop/static/js/main.93a3e11c.js",
+    "main.css": "/freeloop/static/css/main.d038fcbb.css",
+    "main.js": "/freeloop/static/js/main.440ab5ef.js",
     "static/js/377.9420b835.chunk.js": "/freeloop/static/js/377.9420b835.chunk.js",
     "service-worker.js": "/freeloop/service-worker.js",
     "index.html": "/freeloop/index.html",
-    "main.cbd5ecee.css.map": "/freeloop/static/css/main.cbd5ecee.css.map",
-    "main.93a3e11c.js.map": "/freeloop/static/js/main.93a3e11c.js.map",
+    "main.d038fcbb.css.map": "/freeloop/static/css/main.d038fcbb.css.map",
+    "main.440ab5ef.js.map": "/freeloop/static/js/main.440ab5ef.js.map",
     "377.9420b835.chunk.js.map": "/freeloop/static/js/377.9420b835.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.cbd5ecee.css",
-    "static/js/main.93a3e11c.js"
+    "static/css/main.d038fcbb.css",
+    "static/js/main.440ab5ef.js"
   ]
 }
