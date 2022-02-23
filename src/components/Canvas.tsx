@@ -9,6 +9,16 @@ interface Point {
 }
 
 const POINT_RADIUS = 20;
+const PADDING = 40;
+
+const drawBackground = (ctx: CanvasRenderingContext2D) => {
+  const { width, height } = ctx.canvas;
+  ctx.beginPath();
+  ctx.fillStyle = '#333333';
+  ctx.fillRect(0, 0, width, height);
+  ctx.strokeStyle = '#666666';
+  ctx.strokeRect(PADDING, PADDING, width - (PADDING * 2), height - (PADDING * 2));
+};
 
 const drawPoints = (ctx: CanvasRenderingContext2D, points: Point[], selectedIndex: number) => {
   ctx.fillStyle = '#666666';
@@ -66,9 +76,14 @@ export default function Canvas() {
     if (type === 'pointermove' && rect) {
       if (selectedIndex > -1) {
         setPopperShow(false);
-        setPoints(points.map((point, index) => (
-          index === selectedIndex ? { x: xy[0] - rect.left, y: xy[1] - rect.top } : point
-        )));
+        setPoints(points.map((point, index) => {
+          if (index === selectedIndex) {
+            const x = Math.max(PADDING, Math.min(xy[0] - rect.left, rect.width - PADDING));
+            const y = Math.max(PADDING, Math.min(xy[1] - rect.top, rect.height - PADDING));
+            return { x, y };
+          }
+          return point;
+        }));
       }
     }
 
@@ -99,8 +114,7 @@ export default function Canvas() {
     if (canvasRef.current) {
       const ctx = canvasRef.current.getContext('2d');
       if (ctx) {
-        ctx.fillStyle = '#333333';
-        ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        drawBackground(ctx);
         drawPoints(ctx, points, selectedIndex);
       }
     }
