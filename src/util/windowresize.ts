@@ -9,12 +9,12 @@
  * @param  {Number} wait Milliseconds to wait before next call.
  * @param  {Boolean} immediate True to not wait.
  */
-function debounce(func: Function, wait: number, immediate = false): (e: Event) => any {
+function debounce(func: Function, wait: number, immediate = false) {
   let timeout: number;
   // eslint-disable-next-line func-names
-  return function (this: any) {
+  return function (that: any) {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const context = this;
+    const context = that;
     // eslint-disable-next-line prefer-rest-params
     const args = arguments;
     const later = () => {
@@ -35,7 +35,8 @@ function debounce(func: Function, wait: number, immediate = false): (e: Event) =
  */
 const callbacks: Function[] = [];
 const delay = 250;
-let debouncedFunction: (e: Event) => any;
+// eslint-disable-next-line no-unused-vars
+let debouncedFunction: (that: any) => any;
 
 export default function addWindowResizeCallback(callback: Function) {
   callbacks.push(callback);

@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useDrag } from '@use-gesture/react';
 import { usePopper } from 'react-popper';
-import { VirtualElement } from '@popperjs/core';
 import addWindowResizeCallback from '../util/windowresize';
 
 interface Point {
@@ -33,7 +32,7 @@ const virtualElement = {
   getBoundingClientRect: () => domRect,
 };
 
-export default () => {
+export default function Canvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [rect, setRect] = useState<DOMRect>();
   const [points, setPoints] = useState<Point[]>([]);
@@ -48,19 +47,23 @@ export default () => {
   });
 
   const dragHook = useDrag((state) => {
-    const { args: [ rect ], distance, elapsedTime, type, xy } = state;
+    const {
+      distance, elapsedTime, type, xy,
+    } = state;
     // console.log(state.type);
 
-    if (type === 'pointerdown') {
+    if (type === 'pointerdown' && rect) {
       const pointIndex = points.findIndex((point) => (
-        Math.sqrt((point.x - xy[0] + rect.left) ** 2 + (point.y - xy[1] + rect.top) ** 2) <= POINT_RADIUS));
+        Math.sqrt(
+          (point.x - xy[0] + rect.left) ** 2 + (point.y - xy[1] + rect.top) ** 2,
+        ) <= POINT_RADIUS));
       if (pointIndex !== selectedIndex) {
         setPopperShow(false);
       }
       setSelectedIndex(pointIndex);
     }
 
-    if (type === 'pointermove') {
+    if (type === 'pointermove' && rect) {
       if (selectedIndex > -1) {
         setPopperShow(false);
         setPoints(points.map((point, index) => (
@@ -69,24 +72,26 @@ export default () => {
       }
     }
 
-    if (type === 'pointerup') {
+    if (type === 'pointerup' && rect) {
       const dist = Math.sqrt(distance[0] ** 2 + distance[1] ** 2);
       if (selectedIndex === -1 && elapsedTime > 250 && dist < 2) {
         setPoints([{ x: xy[0] - rect.left, y: xy[1] - rect.top }, ...points]);
         setSelectedIndex(0);
-      }   
+      }
 
       if (selectedIndex > -1 && elapsedTime > 250 && dist < 2 && rect) {
         const radius = POINT_RADIUS + 20;
-        const distance = radius * 2;
+        const size = radius * 2;
         const { x, y } = points[selectedIndex];
-        domRect = new DOMRect(x + rect.x - radius, y + rect.y - radius, distance, distance);
-        update && update();
+        domRect = new DOMRect(x + rect.x - radius, y + rect.y - radius, size, size);
+        if (update) {
+          update();
+        }
         setPopperShow(true);
       }
     }
   }, {
-    preventDefault: true, 
+    preventDefault: true,
   });
 
   // canvas redraw
@@ -104,7 +109,7 @@ export default () => {
   // window resize
   useEffect(() => {
     const onWindowResize = () => {
-      const parentEl = canvasRef.current?.parentElement;  
+      const parentEl = canvasRef.current?.parentElement;
       if (parentEl) {
         const parentRect = parentEl.getBoundingClientRect();
         canvasRef.current.width = parentRect.width;
@@ -116,28 +121,37 @@ export default () => {
     onWindowResize();
   }, []);
 
-  return <>
-    <canvas
-    ref = {canvasRef}
-    { ...dragHook(rect, 'arg') }
-    />
-    <div
-      ref={setPopperElement}
-      className={`popper ${popperShow ? 'show' : ''}`}
-      style={styles.popper}
-      { ...attributes.popper }>
-      <button
-        onClick={() => {
-          setPopperShow(false);
-          setPoints(points.reduce((accumulator, point, index) => (
-            selectedIndex === index ? accumulator : [ ...accumulator, point ]
-          ), [] as Point[]));
-        }}
-        >x</button>
+  return (
+    <>
+      <canvas
+        ref={canvasRef}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...dragHook(rect, 'arg')}
+      />
       <div
-        ref={setPopperArrowElement}
-        className="popper-arrow"
-        style={styles.arrow} />
-    </div>
-  </>;
+        ref={setPopperElement}
+        className={`popper ${popperShow ? 'show' : ''}`}
+        style={styles.popper}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...attributes.popper}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            setPopperShow(false);
+            setPoints(points.reduce((accumulator, point, index) => (
+              selectedIndex === index ? accumulator : [...accumulator, point]
+            ), [] as Point[]));
+          }}
+        >
+          x
+        </button>
+        <div
+          ref={setPopperArrowElement}
+          className="popper-arrow"
+          style={styles.arrow}
+        />
+      </div>
+    </>
+  );
 }

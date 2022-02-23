@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './css/style.css';
 import './css/tailwind.css';
-import 'inobounce/inobounce.js';
+import 'inobounce/inobounce';
 import App from './components/App';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import reportWebVitals from './reportWebVitals';
