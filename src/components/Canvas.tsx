@@ -47,6 +47,7 @@ export default function Canvas() {
   const [rect, setRect] = useState<DOMRect>();
   const [points, setPoints] = useState<Point[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
+  const [timeoutId, setTimeoutId] = useState<ReturnType<typeof setTimeout>>();
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
   const [popperArrowElement, setPopperArrowElement] = useState<HTMLDivElement | null>(null);
   const [popperShow, setPopperShow] = useState<boolean>(false);
@@ -60,21 +61,39 @@ export default function Canvas() {
     const {
       distance, elapsedTime, type, xy,
     } = state;
-    // console.log(state.type);
 
     if (type === 'pointerdown' && rect) {
       const pointIndex = points.findIndex((point) => (
         Math.sqrt(
           (point.x - xy[0] + rect.left) ** 2 + (point.y - xy[1] + rect.top) ** 2,
         ) <= POINT_RADIUS));
+
       if (pointIndex !== selectedIndex) {
         setPopperShow(false);
       }
+
       setSelectedIndex(pointIndex);
+
+      setTimeoutId(setTimeout(() => {
+        if (pointIndex > -1) {
+          const radius = POINT_RADIUS + 20;
+          const size = radius * 2;
+          const { x, y } = points[pointIndex];
+          domRect = new DOMRect(x + rect.x - radius, y + rect.y - radius, size, size);
+          if (update) {
+            update();
+          }
+          setPopperShow(true);
+        }
+      }, 250));
     }
 
     if (type === 'pointermove' && rect) {
       if (selectedIndex > -1) {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          setTimeoutId(undefined);
+        }
         setPopperShow(false);
         setPoints(points.map((point, index) => {
           if (index === selectedIndex) {
@@ -88,21 +107,14 @@ export default function Canvas() {
     }
 
     if (type === 'pointerup' && rect) {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        setTimeoutId(undefined);
+      }
       const dist = Math.sqrt(distance[0] ** 2 + distance[1] ** 2);
       if (selectedIndex === -1 && elapsedTime > 250 && dist < 2) {
         setPoints([{ x: xy[0] - rect.left, y: xy[1] - rect.top }, ...points]);
         setSelectedIndex(0);
-      }
-
-      if (selectedIndex > -1 && elapsedTime > 250 && dist < 2 && rect) {
-        const radius = POINT_RADIUS + 20;
-        const size = radius * 2;
-        const { x, y } = points[selectedIndex];
-        domRect = new DOMRect(x + rect.x - radius, y + rect.y - radius, size, size);
-        if (update) {
-          update();
-        }
-        setPopperShow(true);
       }
     }
   }, {
