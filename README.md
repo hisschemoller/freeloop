@@ -20,3 +20,8 @@ Some sort of audio sequencer.
 4. ESLint + React + TS fixes
     - https://stackoverflow.com/questions/62953124/configure-eslint-to-parse-ts-and-tsx-as-typescript-and-js-and-jsx-as-ecmascr
     - https://stackoverflow.com/questions/55614983/jsx-not-allowed-in-files-with-extension-tsxeslintreact-jsx-filename-extensio/58835704
+5. Add Redux and -tooolkit
+    - https://www.sandromaglione.com/redux-with-typescript-for-state-management/
+    - https://redux.js.org/
+    - https://redux-toolkit.js.org/
+
