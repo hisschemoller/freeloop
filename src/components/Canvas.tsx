@@ -1,15 +1,23 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useDrag } from '@use-gesture/react';
 import { usePopper } from 'react-popper';
+import gsap from 'gsap';
 import addWindowResizeCallback from '../util/windowresize';
 
 interface Point {
   x: number;
   y: number;
+  radius: number;
 }
 
 const POINT_RADIUS = 20;
 const PADDING = 40;
+
+let domRect = new DOMRect();
+
+const virtualElement = {
+  getBoundingClientRect: () => domRect,
+};
 
 const drawBackground = (ctx: CanvasRenderingContext2D) => {
   const { width, height } = ctx.canvas;
@@ -24,28 +32,23 @@ const drawPoints = (ctx: CanvasRenderingContext2D, points: Point[], selectedInde
   ctx.fillStyle = '#666666';
   points.forEach((point, index) => {
     ctx.beginPath();
-    ctx.arc(point.x, point.y, POINT_RADIUS, 0, Math.PI * 2);
+    ctx.arc(point.x, point.y, point.radius, 0, Math.PI * 2);
     ctx.fill();
     if (index === selectedIndex) {
       ctx.beginPath();
       ctx.strokeStyle = '#cccccc';
       ctx.lineWidth = 3;
-      ctx.arc(point.x, point.y, POINT_RADIUS + 6, 0, Math.PI * 2);
+      ctx.arc(point.x, point.y, point.radius + 6, 0, Math.PI * 2);
       ctx.stroke();
     }
   });
-};
-
-let domRect = new DOMRect();
-
-const virtualElement = {
-  getBoundingClientRect: () => domRect,
 };
 
 export default function Canvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [rect, setRect] = useState<DOMRect>();
   const [points, setPoints] = useState<Point[]>([]);
+  const [isAnimating, setIsAnimating] = useState<number>(0);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [timeoutId, setTimeoutId] = useState<ReturnType<typeof setTimeout>>();
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
@@ -58,9 +61,7 @@ export default function Canvas() {
   });
 
   const dragHook = useDrag((state) => {
-    const {
-      distance, elapsedTime, type, xy,
-    } = state;
+    const { type, xy } = state;
 
     if (type === 'pointerdown' && rect) {
       const pointIndex = points.findIndex((point) => (
@@ -74,8 +75,17 @@ export default function Canvas() {
 
       setSelectedIndex(pointIndex);
 
+      // grow animation
+      gsap.to(points[pointIndex], {
+        duration: 0.2,
+        ease: 'power1.out',
+        radius: POINT_RADIUS * 2,
+        onUpdate: () => setIsAnimating(Math.random()),
+      });
+
       setTimeoutId(setTimeout(() => {
         if (pointIndex > -1) {
+          // select touched dot
           const radius = POINT_RADIUS + 20;
           const size = radius * 2;
           const { x, y } = points[pointIndex];
@@ -84,8 +94,25 @@ export default function Canvas() {
             update();
           }
           setPopperShow(true);
+        } else {
+          // create new dot
+          const point = {
+            x: xy[0] - rect.left,
+            y: xy[1] - rect.top,
+            radius: POINT_RADIUS,
+          };
+          setPoints([...points, point]);
+          setSelectedIndex(points.length);
+
+          // an intro animation
+          gsap.from(point, {
+            duration: 0.6,
+            ease: 'power1.out',
+            radius: POINT_RADIUS * 3,
+            onUpdate: () => setIsAnimating(Math.random()),
+          });
         }
-      }, 250));
+      }, 300));
     }
 
     if (type === 'pointermove' && rect) {
@@ -95,27 +122,27 @@ export default function Canvas() {
           setTimeoutId(undefined);
         }
         setPopperShow(false);
-        setPoints(points.map((point, index) => {
-          if (index === selectedIndex) {
-            const x = Math.max(PADDING, Math.min(xy[0] - rect.left, rect.width - PADDING));
-            const y = Math.max(PADDING, Math.min(xy[1] - rect.top, rect.height - PADDING));
-            return { x, y };
-          }
-          return point;
-        }));
+        setIsAnimating(Math.random());
+        const point = points[selectedIndex];
+        point.x = Math.max(PADDING, Math.min(xy[0] - rect.left, rect.width - PADDING));
+        point.y = Math.max(PADDING, Math.min(xy[1] - rect.top, rect.height - PADDING));
+        setPoints(points);
       }
     }
 
-    if (type === 'pointerup' && rect) {
+    if (type === 'pointerup') {
       if (timeoutId) {
         clearTimeout(timeoutId);
         setTimeoutId(undefined);
       }
-      const dist = Math.sqrt(distance[0] ** 2 + distance[1] ** 2);
-      if (selectedIndex === -1 && elapsedTime > 250 && dist < 2) {
-        setPoints([{ x: xy[0] - rect.left, y: xy[1] - rect.top }, ...points]);
-        setSelectedIndex(0);
-      }
+
+      // shrink animation
+      gsap.to(points[selectedIndex], {
+        duration: 0.2,
+        ease: 'power1.out',
+        radius: POINT_RADIUS,
+        onUpdate: () => setIsAnimating(Math.random()),
+      });
     }
   }, {
     preventDefault: true,
@@ -130,7 +157,7 @@ export default function Canvas() {
         drawPoints(ctx, points, selectedIndex);
       }
     }
-  }, [points, rect, selectedIndex]);
+  }, [isAnimating, points, rect, selectedIndex]);
 
   // window resize
   useEffect(() => {
