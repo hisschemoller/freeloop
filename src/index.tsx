@@ -1,15 +1,19 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './css/style.css';
-import './css/tailwind.css';
+import { Provider } from 'react-redux';
 import 'inobounce/inobounce';
+import { store } from './store';
 import App from './components/App';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import reportWebVitals from './reportWebVitals';
+import './css/style.css';
+import './css/tailwind.css';
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Provider store={store}>
+      <App />
+    </Provider>
   </React.StrictMode>,
   document.getElementById('root'),
 );

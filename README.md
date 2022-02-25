@@ -9,6 +9,10 @@ Some sort of audio sequencer.
 * Tap slightly longer on an empty area to create a point.
 * Drag a point to move it.
 
+## Redux
+
+All notes on screen as an array? As a normalized horizontal and vertical position?
+
 ## Setup
 
 1. Create a New React App
@@ -24,4 +28,7 @@ Some sort of audio sequencer.
     - https://www.sandromaglione.com/redux-with-typescript-for-state-management/
     - https://redux.js.org/
     - https://redux-toolkit.js.org/
+6. Use-gesture
+    https://use-gesture.netlify.app/
+
 
