@@ -10,6 +10,11 @@ interface Point {
   radius: number;
 }
 
+interface Vector2 {
+  x: number;
+  y: number;
+}
+
 const POINT_RADIUS = 20;
 const PADDING = 40;
 
@@ -48,6 +53,7 @@ export default function Canvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [rect, setRect] = useState<DOMRect>();
   const [points, setPoints] = useState<Point[]>([]);
+  const [touchOffset, setTouchOffset] = useState<Vector2>({ x: 0, y: 0 });
   const [isAnimating, setIsAnimating] = useState<number>(0);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [timeoutId, setTimeoutId] = useState<ReturnType<typeof setTimeout>>();
@@ -63,13 +69,23 @@ export default function Canvas() {
 
   // touch events
   const dragHook = useDrag((state) => {
-    const { type, xy } = state;
+    const { distance, type, xy } = state;
 
     if (type === 'pointerdown' && rect) {
-      const pointIndex = points.findIndex((point) => (
-        Math.sqrt(
+      const pointIndex = points.findIndex((point) => {
+        const distToPoint = Math.sqrt(
           (point.x - xy[0] + rect.left) ** 2 + (point.y - xy[1] + rect.top) ** 2,
-        ) <= POINT_RADIUS));
+        );
+        if (distToPoint <= POINT_RADIUS) {
+          // the offset between the touch and the point
+          setTouchOffset({
+            x: point.x - xy[0] + rect.left,
+            y: point.y - xy[1] + rect.top,
+          });
+          return true;
+        }
+        return false;
+      });
 
       if (pointIndex !== selectedIndex) {
         setPopperShow(false);
@@ -89,11 +105,16 @@ export default function Canvas() {
 
       setTimeoutId(setTimeout(() => {
         if (pointIndex > -1) {
-          // select touched dot
+          // open popper toolbox
           const radius = POINT_RADIUS + 20;
           const size = radius * 2;
           const { x, y } = points[pointIndex];
-          domRect = new DOMRect(x + rect.x - radius, y + rect.y - radius, size, size);
+          domRect = new DOMRect(
+            x + rect.x - radius - touchOffset.x,
+            y + rect.y - radius - touchOffset.y,
+            size,
+            size,
+          );
           if (update) {
             update();
           }
@@ -122,14 +143,19 @@ export default function Canvas() {
     if (type === 'pointermove' && rect) {
       if (selectedIndex > -1) {
         if (timeoutId) {
-          clearTimeout(timeoutId);
-          setTimeoutId(undefined);
+          const eucliDist = Math.sqrt(distance[0] ** 2 + distance[1] ** 2);
+          if (eucliDist > 5) {
+            clearTimeout(timeoutId);
+            setTimeoutId(undefined);
+            setPopperShow(false);
+          }
         }
-        setPopperShow(false);
         setIsAnimating(Math.random());
         const point = points[selectedIndex];
-        point.x = Math.max(PADDING, Math.min(xy[0] - rect.left, rect.width - PADDING));
-        point.y = Math.max(PADDING, Math.min(xy[1] - rect.top, rect.height - PADDING));
+        // eslint-disable-next-line max-len
+        point.x = Math.max(PADDING, Math.min(xy[0] - rect.left + touchOffset.x, rect.width - PADDING));
+        // eslint-disable-next-line max-len
+        point.y = Math.max(PADDING, Math.min(xy[1] - rect.top + touchOffset.y, rect.height - PADDING));
         setPoints(points);
       }
     }
