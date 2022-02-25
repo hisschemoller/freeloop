@@ -55,11 +55,13 @@ export default function Canvas() {
   const [popperArrowElement, setPopperArrowElement] = useState<HTMLDivElement | null>(null);
   const [popperShow, setPopperShow] = useState<boolean>(false);
 
+  // popper
   const { attributes, styles, update } = usePopper(virtualElement, popperElement, {
     modifiers: [{ name: 'arrow', options: { element: popperArrowElement } }],
     placement: 'top',
   });
 
+  // touch events
   const dragHook = useDrag((state) => {
     const { type, xy } = state;
 
@@ -76,12 +78,14 @@ export default function Canvas() {
       setSelectedIndex(pointIndex);
 
       // grow animation
-      gsap.to(points[pointIndex], {
-        duration: 0.2,
-        ease: 'power1.out',
-        radius: POINT_RADIUS * 2,
-        onUpdate: () => setIsAnimating(Math.random()),
-      });
+      if (pointIndex > -1) {
+        gsap.to(points[pointIndex], {
+          duration: 0.2,
+          ease: 'power1.out',
+          radius: POINT_RADIUS * 2,
+          onUpdate: () => setIsAnimating(Math.random()),
+        });
+      }
 
       setTimeoutId(setTimeout(() => {
         if (pointIndex > -1) {
@@ -112,7 +116,7 @@ export default function Canvas() {
             onUpdate: () => setIsAnimating(Math.random()),
           });
         }
-      }, 300));
+      }, 250));
     }
 
     if (type === 'pointermove' && rect) {
@@ -137,12 +141,14 @@ export default function Canvas() {
       }
 
       // shrink animation
-      gsap.to(points[selectedIndex], {
-        duration: 0.2,
-        ease: 'power1.out',
-        radius: POINT_RADIUS,
-        onUpdate: () => setIsAnimating(Math.random()),
-      });
+      if (selectedIndex > -1) {
+        gsap.to(points[selectedIndex], {
+          duration: 0.2,
+          ease: 'power1.out',
+          radius: POINT_RADIUS,
+          onUpdate: () => setIsAnimating(Math.random()),
+        });
+      }
     }
   }, {
     preventDefault: true,
@@ -159,7 +165,7 @@ export default function Canvas() {
     }
   }, [isAnimating, points, rect, selectedIndex]);
 
-  // window resize
+  // handle resize
   useEffect(() => {
     const onWindowResize = () => {
       const parentEl = canvasRef.current?.parentElement;
@@ -177,9 +183,10 @@ export default function Canvas() {
   return (
     <>
       <canvas
+        className="touch-none"
         ref={canvasRef}
         // eslint-disable-next-line react/jsx-props-no-spreading
-        {...dragHook(rect, 'arg')}
+        {...dragHook(rect, points)}
       />
       <div
         ref={setPopperElement}
