@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useDrag } from '@use-gesture/react';
 import { usePopper } from 'react-popper';
 import gsap from 'gsap';
+import { MdClose } from 'react-icons/md';
 import addWindowResizeCallback from '../util/windowresize';
 
 interface Point {
@@ -130,6 +131,7 @@ export default function Canvas() {
           setSelectedIndex(points.length);
 
           // an intro animation
+          gsap.killTweensOf(point);
           gsap.from(point, {
             duration: 0.6,
             ease: 'power1.out',
@@ -168,6 +170,7 @@ export default function Canvas() {
 
       // shrink animation
       if (selectedIndex > -1) {
+        gsap.killTweensOf(points[selectedIndex]);
         gsap.to(points[selectedIndex], {
           duration: 0.2,
           ease: 'power1.out',
@@ -230,7 +233,7 @@ export default function Canvas() {
             ), [] as Point[]));
           }}
         >
-          x
+          <MdClose className="text-4xl" />
         </button>
         <div
           ref={setPopperArrowElement}

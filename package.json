@@ -46,6 +46,7 @@
     "inobounce": "^0.2.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-icons": "^4.3.1",
     "react-popper": "^2.2.5",
     "react-redux": "^7.2.6",
     "react-scripts": "5.0.0",

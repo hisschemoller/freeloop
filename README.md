@@ -29,6 +29,8 @@ All notes on screen as an array? As a normalized horizontal and vertical positio
     - https://redux.js.org/
     - https://redux-toolkit.js.org/
 6. Use-gesture
-    https://use-gesture.netlify.app/
-
+    - https://use-gesture.netlify.app/
+7. Popper
+8. React-icons
+    - https://react-icons.github.io/react-icons
 
