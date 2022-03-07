@@ -4,6 +4,8 @@ import { usePopper } from 'react-popper';
 import gsap from 'gsap';
 import { MdClose } from 'react-icons/md';
 import addWindowResizeCallback from '../util/windowresize';
+import { useAppDispatch } from '../app/hooks';
+import { addNote } from '../features/notesSlice';
 
 interface Point {
   x: number;
@@ -51,6 +53,7 @@ const drawPoints = (ctx: CanvasRenderingContext2D, points: Point[], selectedInde
 };
 
 export default function Canvas() {
+  const dispatch = useAppDispatch();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [rect, setRect] = useState<DOMRect>();
   const [points, setPoints] = useState<Point[]>([]);
@@ -127,6 +130,7 @@ export default function Canvas() {
             y: xy[1] - rect.top,
             radius: POINT_RADIUS,
           };
+          dispatch(addNote(point));
           setPoints([...points, point]);
           setSelectedIndex(points.length);
 
