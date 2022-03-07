@@ -4,8 +4,8 @@ import { usePopper } from 'react-popper';
 import gsap from 'gsap';
 import { MdClose } from 'react-icons/md';
 import addWindowResizeCallback from '../util/windowresize';
-import { useAppDispatch } from '../app/hooks';
-import { addNote } from '../features/notesSlice';
+import { useAppDispatch, useAppSelector } from '../app/hooks';
+import { addNote, selectNote } from '../features/notesSlice';
 
 interface Point {
   x: number;
@@ -54,12 +54,12 @@ const drawPoints = (ctx: CanvasRenderingContext2D, points: Point[], selectedInde
 
 export default function Canvas() {
   const dispatch = useAppDispatch();
+  const { notes, selectedIndex } = useAppSelector((state) => state.notes);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [rect, setRect] = useState<DOMRect>();
   const [points, setPoints] = useState<Point[]>([]);
   const [touchOffset, setTouchOffset] = useState<Vector2>({ x: 0, y: 0 });
   const [isAnimating, setIsAnimating] = useState<number>(0);
-  const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [timeoutId, setTimeoutId] = useState<ReturnType<typeof setTimeout>>();
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
   const [popperArrowElement, setPopperArrowElement] = useState<HTMLDivElement | null>(null);
@@ -95,7 +95,7 @@ export default function Canvas() {
         setPopperShow(false);
       }
 
-      setSelectedIndex(pointIndex);
+      dispatch(selectNote(pointIndex));
 
       // grow animation
       if (pointIndex > -1) {
@@ -130,9 +130,9 @@ export default function Canvas() {
             y: xy[1] - rect.top,
             radius: POINT_RADIUS,
           };
-          dispatch(addNote(point));
+          dispatch(addNote({ ...point }));
           setPoints([...points, point]);
-          setSelectedIndex(points.length);
+          dispatch(selectNote(pointIndex));
 
           // an intro animation
           gsap.killTweensOf(point);
@@ -186,6 +186,11 @@ export default function Canvas() {
   }, {
     preventDefault: true,
   });
+
+  // update points if notes change in redux state
+  useEffect(() => {
+    console.log('notes', notes);
+  }, [notes]);
 
   // canvas redraw
   useEffect(() => {

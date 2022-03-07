@@ -5,10 +5,12 @@ import Note from '../interfaces/Note';
 
 interface NotesState {
   notes: Note[];
+  selectedIndex: number;
 }
 
 const initialState: NotesState = {
   notes: [],
+  selectedIndex: -1,
 };
 
 const notesSlice = createSlice({
@@ -18,10 +20,13 @@ const notesSlice = createSlice({
     addNote(state, action: PayloadAction<Note>) {
       state.notes = [...state.notes, action.payload];
     },
+    selectNote(state, action: PayloadAction<number>) {
+      state.selectedIndex = action.payload;
+    },
   },
 });
 
-export const { addNote } = notesSlice.actions;
+export const { addNote, selectNote } = notesSlice.actions;
 
 export const selectNotes = (state: RootState) => state.notes.notes;
 
