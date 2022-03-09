@@ -1,13 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useDrag } from '@use-gesture/react';
-import { usePopper } from 'react-popper';
 import gsap from 'gsap';
-import { MdClose } from 'react-icons/md';
 import addWindowResizeCallback from '../util/windowresize';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import {
-  addNote, deleteSelectedNote, dragNote, selectNote,
-} from '../features/notesSlice';
+import { addNote, dragNote, selectNote } from '../features/notesSlice';
+import { positionToolBox, showToolBox } from '../features/toolBoxSlice';
 
 interface Point {
   x: number;
@@ -22,12 +19,6 @@ interface Vector2 {
 
 const POINT_RADIUS = 20;
 const PADDING = 40;
-
-let domRect = new DOMRect();
-
-const virtualElement = {
-  getBoundingClientRect: () => domRect,
-};
 
 const drawBackground = (ctx: CanvasRenderingContext2D) => {
   const { width, height } = ctx.canvas;
@@ -63,15 +54,6 @@ export default function Canvas() {
   const [touchOffset, setTouchOffset] = useState<Vector2>({ x: 0, y: 0 });
   const [isAnimating, setIsAnimating] = useState<number>(0);
   const [timeoutId, setTimeoutId] = useState<ReturnType<typeof setTimeout>>();
-  const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
-  const [popperArrowElement, setPopperArrowElement] = useState<HTMLDivElement | null>(null);
-  const [popperShow, setPopperShow] = useState<boolean>(false);
-
-  // popper
-  const { attributes, styles, update } = usePopper(virtualElement, popperElement, {
-    modifiers: [{ name: 'arrow', options: { element: popperArrowElement } }],
-    placement: 'top',
-  });
 
   // touch events
   const dragHook = useDrag((state) => {
@@ -94,7 +76,7 @@ export default function Canvas() {
       });
 
       if (pointIndex !== selectedIndex) {
-        setPopperShow(false);
+        dispatch(showToolBox(false));
       }
 
       dispatch(selectNote(pointIndex));
@@ -115,16 +97,8 @@ export default function Canvas() {
           const radius = POINT_RADIUS + 20;
           const size = radius * 2;
           const { x, y } = points[pointIndex];
-          domRect = new DOMRect(
-            x + rect.x - radius - touchOffset.x,
-            y + rect.y - radius - touchOffset.y,
-            size,
-            size,
-          );
-          if (update) {
-            update();
-          }
-          setPopperShow(true);
+          dispatch(positionToolBox({ x, y, size }));
+          dispatch(showToolBox(true));
         } else {
           // create new note
           dispatch(addNote({
@@ -151,7 +125,7 @@ export default function Canvas() {
           if (eucliDist > 5) {
             clearTimeout(timeoutId);
             setTimeoutId(undefined);
-            setPopperShow(false);
+            dispatch(showToolBox(false));
           }
         }
         const x = (xy[0] - rect.left + touchOffset.x - PADDING) / (rect.width - (PADDING * 2));
@@ -217,35 +191,11 @@ export default function Canvas() {
   }, []);
 
   return (
-    <>
-      <canvas
-        className="touch-none"
-        ref={canvasRef}
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...dragHook(rect, points)}
-      />
-      <div
-        ref={setPopperElement}
-        className={`popper ${popperShow ? 'show' : ''}`}
-        style={styles.popper}
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...attributes.popper}
-      >
-        <button
-          type="button"
-          onClick={() => {
-            setPopperShow(false);
-            dispatch(deleteSelectedNote());
-          }}
-        >
-          <MdClose className="text-4xl" />
-        </button>
-        <div
-          ref={setPopperArrowElement}
-          className="popper-arrow"
-          style={styles.arrow}
-        />
-      </div>
-    </>
+    <canvas
+      className="touch-none"
+      ref={canvasRef}
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      {...dragHook(rect, points)}
+    />
   );
 }

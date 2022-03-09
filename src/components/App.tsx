@@ -1,5 +1,6 @@
 import React from 'react';
 import Canvas from './Canvas';
+import ToolBox from './ToolBox';
 
 function App() {
   return (
@@ -7,6 +8,7 @@ function App() {
       <div className="container mx-auto h-screen flex flex-col">
         <div className="bg-red-900 flex-grow">
           <Canvas />
+          <ToolBox />
         </div>
         <div className="toolbar">
           <div className="pb-4 pt-1">
