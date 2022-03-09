@@ -5,7 +5,9 @@ import gsap from 'gsap';
 import { MdClose } from 'react-icons/md';
 import addWindowResizeCallback from '../util/windowresize';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { addNote, selectNote } from '../features/notesSlice';
+import {
+  addNote, deleteSelectedNote, dragNote, selectNote,
+} from '../features/notesSlice';
 
 interface Point {
   x: number;
@@ -124,24 +126,23 @@ export default function Canvas() {
           }
           setPopperShow(true);
         } else {
-          // create new dot
-          const point = {
-            x: xy[0] - rect.left,
-            y: xy[1] - rect.top,
-            radius: POINT_RADIUS,
-          };
-          dispatch(addNote({ ...point }));
-          setPoints([...points, point]);
+          // create new note
+          dispatch(addNote({
+            x: (xy[0] - rect.left - PADDING) / (rect.width - (PADDING * 2)),
+            y: (xy[1] - rect.top - PADDING) / (rect.height - (PADDING * 2)),
+          }));
           dispatch(selectNote(pointIndex));
 
+          // setPoints([...points, point]);
+
           // an intro animation
-          gsap.killTweensOf(point);
-          gsap.from(point, {
-            duration: 0.6,
-            ease: 'power1.out',
-            radius: POINT_RADIUS * 3,
-            onUpdate: () => setIsAnimating(Math.random()),
-          });
+          // gsap.killTweensOf(point);
+          // gsap.from(point, {
+          //   duration: 0.6,
+          //   ease: 'power1.out',
+          //   radius: POINT_RADIUS * 3,
+          //   onUpdate: () => setIsAnimating(Math.random()),
+          // });
         }
       }, 250));
     }
@@ -156,13 +157,12 @@ export default function Canvas() {
             setPopperShow(false);
           }
         }
-        setIsAnimating(Math.random());
-        const point = points[selectedIndex];
-        // eslint-disable-next-line max-len
-        point.x = Math.max(PADDING, Math.min(xy[0] - rect.left + touchOffset.x, rect.width - PADDING));
-        // eslint-disable-next-line max-len
-        point.y = Math.max(PADDING, Math.min(xy[1] - rect.top + touchOffset.y, rect.height - PADDING));
-        setPoints(points);
+        const x = (xy[0] - rect.left + touchOffset.x - PADDING) / (rect.width - (PADDING * 2));
+        const y = (xy[1] - rect.top + touchOffset.y - PADDING) / (rect.height - (PADDING * 2));
+        dispatch(dragNote({
+          x: Math.max(0, Math.min(x, 1)),
+          y: Math.max(0, Math.min(y, 1)),
+        }));
       }
     }
 
@@ -187,21 +187,22 @@ export default function Canvas() {
     preventDefault: true,
   });
 
-  // update points if notes change in redux state
-  useEffect(() => {
-    console.log('notes', notes);
-  }, [notes]);
-
   // canvas redraw
   useEffect(() => {
-    if (canvasRef.current) {
+    if (canvasRef.current && rect) {
       const ctx = canvasRef.current.getContext('2d');
       if (ctx) {
+        const newPoints = notes.map((note) => ({
+          radius: POINT_RADIUS,
+          x: PADDING + (note.pitch * (rect.width - (PADDING * 2))),
+          y: PADDING + (note.time * (rect.height - (PADDING * 2))),
+        }));
+        setPoints(newPoints);
         drawBackground(ctx);
-        drawPoints(ctx, points, selectedIndex);
+        drawPoints(ctx, newPoints, selectedIndex);
       }
     }
-  }, [isAnimating, points, rect, selectedIndex]);
+  }, [isAnimating, notes, rect, selectedIndex]);
 
   // handle resize
   useEffect(() => {
@@ -237,9 +238,7 @@ export default function Canvas() {
           type="button"
           onClick={() => {
             setPopperShow(false);
-            setPoints(points.reduce((accumulator, point, index) => (
-              selectedIndex === index ? accumulator : [...accumulator, point]
-            ), [] as Point[]));
+            dispatch(deleteSelectedNote());
           }}
         >
           <MdClose className="text-4xl" />

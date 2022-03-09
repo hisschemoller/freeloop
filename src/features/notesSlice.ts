@@ -17,8 +17,20 @@ const notesSlice = createSlice({
   name: 'notes',
   initialState,
   reducers: {
-    addNote(state, action: PayloadAction<Note>) {
-      state.notes = [...state.notes, action.payload];
+    addNote(state, action: PayloadAction<{ x: number, y: number }>) {
+      const { x, y } = action.payload;
+      state.notes = [...state.notes, { time: y, pitch: x }];
+    },
+    deleteSelectedNote(state) {
+      state.notes = state.notes.reduce((accumulator, note, index) => (
+        state.selectedIndex === index ? accumulator : [...accumulator, note]
+      ), [] as Note[]);
+    },
+    dragNote(state, action: PayloadAction<{ x: number, y: number }>) {
+      const { x, y } = action.payload;
+      state.notes[state.selectedIndex] = {
+        ...state.notes[state.selectedIndex], time: y, pitch: x,
+      };
     },
     selectNote(state, action: PayloadAction<number>) {
       state.selectedIndex = action.payload;
@@ -26,7 +38,9 @@ const notesSlice = createSlice({
   },
 });
 
-export const { addNote, selectNote } = notesSlice.actions;
+export const {
+  addNote, deleteSelectedNote, dragNote, selectNote,
+} = notesSlice.actions;
 
 export const selectNotes = (state: RootState) => state.notes.notes;
 

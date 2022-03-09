@@ -1,7 +1,6 @@
 interface Note {
-  x: number;
-  y: number;
-  radius: number;
+  time: number;
+  pitch: number;
 }
 
 export default Note;
