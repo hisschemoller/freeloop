@@ -131,9 +131,6 @@ export default function Canvas() {
             x: (xy[0] - rect.left - PADDING) / (rect.width - (PADDING * 2)),
             y: (xy[1] - rect.top - PADDING) / (rect.height - (PADDING * 2)),
           }));
-          dispatch(selectNote(pointIndex));
-
-          // setPoints([...points, point]);
 
           // an intro animation
           // gsap.killTweensOf(point);

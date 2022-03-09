@@ -19,6 +19,7 @@ const notesSlice = createSlice({
   reducers: {
     addNote(state, action: PayloadAction<{ x: number, y: number }>) {
       const { x, y } = action.payload;
+      state.selectedIndex = state.notes.length;
       state.notes = [...state.notes, { time: y, pitch: x }];
     },
     deleteSelectedNote(state) {
