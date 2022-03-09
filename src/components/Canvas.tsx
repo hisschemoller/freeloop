@@ -93,11 +93,11 @@ export default function Canvas() {
 
       setTimeoutId(setTimeout(() => {
         if (pointIndex > -1) {
-          // open popper toolbox
-          const radius = POINT_RADIUS + 20;
-          const size = radius * 2;
-          const { x, y } = points[pointIndex];
-          dispatch(positionToolBox({ x, y, size }));
+          dispatch(positionToolBox({
+            x: points[pointIndex].x + POINT_RADIUS,
+            y: points[pointIndex].y - PADDING,
+            size: (POINT_RADIUS + 20) * 2,
+          }));
           dispatch(showToolBox(true));
         } else {
           // create new note
