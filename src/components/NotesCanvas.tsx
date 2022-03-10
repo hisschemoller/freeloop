@@ -17,16 +17,9 @@ interface Point {
 const POINT_RADIUS = 20;
 const PADDING = 40;
 
-const drawBackground = (ctx: CanvasRenderingContext2D) => {
-  const { width, height } = ctx.canvas;
-  // ctx.beginPath();
-  // ctx.fillStyle = '#333333';
-  // ctx.fillRect(0, 0, width, height);
-  ctx.strokeStyle = '#666666';
-  ctx.strokeRect(PADDING, PADDING, width - (PADDING * 2), height - (PADDING * 2));
-};
-
 const drawPoints = (ctx: CanvasRenderingContext2D, points: Point[], selectedIndex: number) => {
+  const { width, height } = ctx.canvas;
+  ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = '#666666';
   points.forEach((point, index) => {
     ctx.beginPath();
@@ -168,7 +161,6 @@ export default function NotesCanvas() {
           y: PADDING + (note.time * (rect.height - (PADDING * 2))),
         }));
         setPoints(newPoints);
-        drawBackground(ctx);
         drawPoints(ctx, newPoints, selectedIndex);
       }
     }
@@ -191,7 +183,7 @@ export default function NotesCanvas() {
 
   return (
     <canvas
-      className="touch-none"
+      className="absolute touch-none z-10"
       ref={canvasRef}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...dragHook(rect, points)}
