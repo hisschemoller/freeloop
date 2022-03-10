@@ -1,3 +1,5 @@
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable react/no-this-in-sfc */
 import React, { useEffect, useRef, useState } from 'react';
 import { useDrag } from '@use-gesture/react';
 import gsap from 'gsap';
@@ -12,19 +14,14 @@ interface Point {
   radius: number;
 }
 
-interface Vector2 {
-  x: number;
-  y: number;
-}
-
 const POINT_RADIUS = 20;
 const PADDING = 40;
 
 const drawBackground = (ctx: CanvasRenderingContext2D) => {
   const { width, height } = ctx.canvas;
-  ctx.beginPath();
-  ctx.fillStyle = '#333333';
-  ctx.fillRect(0, 0, width, height);
+  // ctx.beginPath();
+  // ctx.fillStyle = '#333333';
+  // ctx.fillRect(0, 0, width, height);
   ctx.strokeStyle = '#666666';
   ctx.strokeRect(PADDING, PADDING, width - (PADDING * 2), height - (PADDING * 2));
 };
@@ -45,13 +42,13 @@ const drawPoints = (ctx: CanvasRenderingContext2D, points: Point[], selectedInde
   });
 };
 
-export default function Canvas() {
+export default function NotesCanvas() {
   const dispatch = useAppDispatch();
   const { notes, selectedIndex } = useAppSelector((state) => state.notes);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [rect, setRect] = useState<DOMRect>();
   const [points, setPoints] = useState<Point[]>([]);
-  const [touchOffset, setTouchOffset] = useState<Vector2>({ x: 0, y: 0 });
+  const [touchOffset, setTouchOffset] = useState<{ x: number, y: number }>({ x: 0, y: 0 });
   const [isAnimating, setIsAnimating] = useState<number>(0);
   const [timeoutId, setTimeoutId] = useState<ReturnType<typeof setTimeout>>();
 
@@ -87,7 +84,9 @@ export default function Canvas() {
           duration: 0.2,
           ease: 'power1.out',
           radius: POINT_RADIUS * 2,
-          onUpdate: () => setIsAnimating(Math.random()),
+          onUpdate() {
+            setIsAnimating(Math.random());
+          },
         });
       }
 
